@@ -23,6 +23,7 @@ const PRODUCT_CONFIG = [
   { id: "luksus_brod_50x140", label: "Luksus brød 50 x 140 mm", maxLanes: 2, labelsPerClick: 14, extraClicks: 18 },
   { id: "luksus_brod_front_58x50", label: "Luksus brød  Front 58 x 50 mm", maxLanes: 5, labelsPerClick: 70, extraClicks: 18 },
   { id: "luksus_brod_back_58x80", label: "Luksus brød  Back 58 x 80 mm", maxLanes: 5, labelsPerClick: 50, extraClicks: 18 },
+  { id: "LOHILO_126x181", label: "LOHILO 126 x 181 mm", maxLanes: 2, labelsPerClick: 8, extraClicks: 25 },
   { id: "kidi_small_22x32", label: "Kidi Small 22 x 32 mm", maxLanes: 11, labelsPerClick: 264, extraClicks: 18 },
   { id: "kidi_deco_63x88", label: "Kidi Deco 63 x 88 mm", maxLanes: 4, labelsPerClick: 32, extraClicks: 18 },
   { id: "bil_80x50", label: "Bil 80 x 50 mm", maxLanes: 3, labelsPerClick: 45, extraClicks: 18 },
