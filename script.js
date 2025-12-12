@@ -29,6 +29,7 @@ const PRODUCT_CONFIG = [
   { id: "mm35x100", label: "35 x 100 mm", maxLanes: 8, labelsPerClick: 64, extraClicks: 18 },
   { id: "mm100x35", label: "100 x 35 mm", maxLanes: 3, labelsPerClick: 72, extraClicks: 18 },
   { id: "monster_95x60", label: "Monster 95 x 60 mm", maxLanes: 3, labelsPerClick: 45, extraClicks: 18 },
+  { id: "monster_L_60x95", label: "Monster  L 60 x 95 mm", maxLanes: 4, labelsPerClick: 36, extraClicks: 18 },
   { id: "monster_111x60", label: "Monster 111 x 60 mm", maxLanes: 2, labelsPerClick: 24, extraClicks: 18 },
   { id: "mm45x75", label: "45 x 75 mm", maxLanes: 6, labelsPerClick: 72, extraClicks: 18 },
   { id: "mm115x300", label: "115 x 300 mm", maxLanes: 2, labelsPerClick: 6, extraClicks: 18 },
