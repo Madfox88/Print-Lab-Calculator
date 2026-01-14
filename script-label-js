@@ -88,10 +88,37 @@ function createDesignRow(initial = {}) {
   inputLanes.className = "number-input design-lanes-input";
   inputLanes.value = initial.lanes != null ? initial.lanes : "";
 
+  // Keep max attribute in sync with selected product
   const currentProduct = getSelectedProduct();
   if (currentProduct && currentProduct.maxLanes != null) {
     inputLanes.max = String(currentProduct.maxLanes);
   }
+
+  // --- NEW: Max button next to lane input (Label Print Calculator only) ---
+  const maxBtn = document.createElement("button");
+  maxBtn.type = "button";
+  maxBtn.textContent = "Max";
+  maxBtn.classList.add("btn-secondary");
+  maxBtn.setAttribute("aria-label", "Set lanes to maximum for current product");
+
+  // Use inline layout so we don't have to touch style.css
+  const lanesWrap = document.createElement("div");
+  lanesWrap.style.display = "flex";
+  lanesWrap.style.gap = "8px";
+  lanesWrap.style.alignItems = "center";
+
+  lanesWrap.appendChild(inputLanes);
+  lanesWrap.appendChild(maxBtn);
+
+  maxBtn.addEventListener("click", () => {
+    const product = getSelectedProduct();
+    if (!product || product.maxLanes == null) return;
+
+    // Set this lane input to maxLanes and trigger the same recalculation path as typing
+    inputLanes.value = String(product.maxLanes);
+    inputLanes.dispatchEvent(new Event("input", { bubbles: true }));
+  });
+  // --- END NEW ---
 
   const removeBtn = document.createElement("button");
   removeBtn.type = "button";
@@ -99,7 +126,7 @@ function createDesignRow(initial = {}) {
   removeBtn.classList.add("btn-danger");
 
   tdTotal.appendChild(inputTotal);
-  tdLanes.appendChild(inputLanes);
+  tdLanes.appendChild(lanesWrap);
   tdActions.appendChild(removeBtn);
 
   tr.appendChild(tdName);
