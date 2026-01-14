@@ -2,14 +2,112 @@
 // FLOWPACK CALCULATOR
 // =========================================================
 
+// =========================================================
+// FLOWPACK CALCULATOR
+// =========================================================
+
+// NOTE: Logic is table-based (boss planning table) with deterministic interpolation.
+// - Max 3 lanes total across all designs
+// - Two modes:
+//   1) "3 ens FP" when exactly one active design uses 3 lanes
+//   2) "1 FP pr lane" for all other cases (uses kgPerLane = totalKg / 3)
+// - Interpolation:
+//   - Linear between defined kg points
+//   - Proportional scaling below 5 kg and above 100 kg
+// - Rounding:
+//   - Clicks: ceil
+//   - Meters: preserve table ratio (m/click) then round to nearest 5 m
+
 const FLOWPACK_MAX_LANES_TOTAL = 3;
-const FLOWPACK_PIECES_PER_KG = 190;
-const FLOWPACK_PIECES_PER_LANE_PER_CLICK = 16; // 3 lanes -> 48 wrappers/click
-const FLOWPACK_CLICK_LENGTH_M = 0.976;
+
+// Boss table from planning sheet
+const FLOWPACK_KG_POINTS = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 75, 100];
+
+// "1 FP pr lane" (mix)
+const FLOWPACK_CLICKS_1 = [90, 165, 235, 315, 385, 455, 530, 605, 671, 830, 1125, 1495];
+const FLOWPACK_METERS_1 = [80, 150, 220, 295, 360, 435, 505, 580, 645, 795, 1090, 1440];
+
+// "3 ens FP" (same design on all 3 lanes)
+const FLOWPACK_CLICKS_3 = [35, 60, 85, 110, 135, 155, 180, 205, 230, 280, 380, 500];
+const FLOWPACK_METERS_3 = [25, 45, 70, 95, 115, 140, 165, 190, 210, 260, 360, 475];
 
 const flowpackTableBody = document.querySelector("#flowpackTable tbody");
 const flowpackAddRowBtn = document.getElementById("flowpackAddRowBtn");
 const flowpackSummary = document.getElementById("flowpackSummary");
+
+function roundToNearest5(value) {
+  if (!Number.isFinite(value)) return 0;
+  return Math.round(value / 5) * 5;
+}
+
+function flowpackInterpolateFromTable(kg, points, clicksArr, metersArr) {
+  // Returns base (float) values for clicks and meters at the given kg.
+  // Scaling:
+  //  - below first point: proportional scaling from first row
+  //  - above last point: proportional scaling from last row
+  //  - between: linear interpolation
+  const x = Number(kg);
+  if (!Number.isFinite(x) || x <= 0) {
+    return { clicks: 0, meters: 0 };
+  }
+
+  const firstKg = points[0];
+  const lastKg = points[points.length - 1];
+
+  if (x <= firstKg) {
+    const factor = x / firstKg;
+    return {
+      clicks: clicksArr[0] * factor,
+      meters: metersArr[0] * factor
+    };
+  }
+
+  if (x >= lastKg) {
+    const factor = x / lastKg;
+    return {
+      clicks: clicksArr[clicksArr.length - 1] * factor,
+      meters: metersArr[metersArr.length - 1] * factor
+    };
+  }
+
+  // Find bracket [i, i+1]
+  for (let i = 0; i < points.length - 1; i++) {
+    const x0 = points[i];
+    const x1 = points[i + 1];
+    if (x >= x0 && x <= x1) {
+      const t = (x - x0) / (x1 - x0);
+      const c0 = clicksArr[i];
+      const c1 = clicksArr[i + 1];
+      const m0 = metersArr[i];
+      const m1 = metersArr[i + 1];
+      return {
+        clicks: c0 + (c1 - c0) * t,
+        meters: m0 + (m1 - m0) * t
+      };
+    }
+  }
+
+  // Should be unreachable due to bounds above
+  return { clicks: 0, meters: 0 };
+}
+
+function flowpackFinalize(base) {
+  // Final rounding rules:
+  // - clicks: ceil
+  // - meters: keep ratio (m per click) then round to nearest 5 m
+  const baseClicks = Number(base.clicks);
+  const baseMeters = Number(base.meters);
+
+  if (!Number.isFinite(baseClicks) || baseClicks <= 0 || !Number.isFinite(baseMeters) || baseMeters <= 0) {
+    return { clicks: 0, meters: 0 };
+  }
+
+  const clicks = Math.ceil(baseClicks);
+  const mPerClick = baseMeters / baseClicks;
+  const meters = roundToNearest5(clicks * mPerClick);
+
+  return { clicks, meters };
+}
 
 function createFlowpackRow(initial = {}) {
   const tr = document.createElement("tr");
@@ -80,7 +178,6 @@ function recalcFlowpack() {
   const rows = Array.from(flowpackTableBody.querySelectorAll("tr"));
 
   const rowInfos = [];
-  let usedLanes = 0;
 
   rows.forEach((row, idx) => {
     const designName = row.dataset.designName || `Design ${idx + 1}`;
@@ -99,12 +196,12 @@ function recalcFlowpack() {
       kg,
       lanes,
       kgInput,
-      lanesInput
+      lanesInput,
+      effectiveLanes: 0
     });
-
-    usedLanes += lanes;
   });
 
+  // Clamp total lanes across designs to FLOWPACK_MAX_LANES_TOTAL
   let remaining = FLOWPACK_MAX_LANES_TOTAL;
   let clamped = false;
 
@@ -131,49 +228,61 @@ function recalcFlowpack() {
       "<span class='muted'>Total lanes limited to 3 across all designs.</span>";
   }
 
-  let totalClicksAll = 0;
-  let totalMetersAll = 0;
+  // Active designs are those that actually have kg and lanes
+  const active = rowInfos.filter((info) => (info.kg || 0) > 0 && (info.effectiveLanes || 0) > 0);
 
+  // Clear per-row outputs first
   rowInfos.forEach((info) => {
-    const row = info.row;
-    const tdClicks = row.children[3];
-    const tdMeters = row.children[4];
-
-    const lanes = info.effectiveLanes || 0;
-    const kg = info.kg || 0;
-
-    if (lanes <= 0 || kg <= 0) {
-      tdClicks.textContent = "";
-      tdMeters.textContent = "";
-      return;
-    }
-
-    const wrappersNeeded = kg * FLOWPACK_PIECES_PER_KG;
-    const wrappersPerClick = lanes * FLOWPACK_PIECES_PER_LANE_PER_CLICK;
-    const baseClicks = Math.ceil(wrappersNeeded / wrappersPerClick);
-
-    const extraWrappers = 2 * FLOWPACK_PIECES_PER_KG;
-    const extraClicks = Math.ceil(extraWrappers / wrappersPerClick);
-
-    const totalClicks = baseClicks + extraClicks;
-    const meters = totalClicks * FLOWPACK_CLICK_LENGTH_M;
-
-    tdClicks.textContent = formatNumber(totalClicks);
-    tdMeters.textContent = meters.toFixed(1);
-
-    totalClicksAll += totalClicks;
-    totalMetersAll += meters;
+    const tdClicks = info.row.children[3];
+    const tdMeters = info.row.children[4];
+    tdClicks.textContent = "";
+    tdMeters.textContent = "";
   });
 
-  if (totalClicksAll === 0) {
+  if (active.length === 0) {
     flowpackSummary.innerHTML =
       "<span class='muted'>Enter kilos and lanes for at least one design.</span>";
-  } else {
-    flowpackSummary.innerHTML = `
-      Total flowpack clicks: <strong>${formatNumber(totalClicksAll)}</strong><br />
-      Approx. diecut stop: <strong>${totalMetersAll.toFixed(1)}</strong> m
-    `;
+    return;
   }
+
+  // Determine mode
+  let mode = "1 FP pr lane";
+  let kgForTable = 0;
+  let base;
+
+  if (active.length === 1 && active[0].effectiveLanes === 3) {
+    mode = "3 ens FP";
+    kgForTable = active[0].kg;
+    base = flowpackInterpolateFromTable(kgForTable, FLOWPACK_KG_POINTS, FLOWPACK_CLICKS_3, FLOWPACK_METERS_3);
+  } else {
+    const totalKg = active.reduce((sum, info) => sum + info.kg, 0);
+    // Table expects kg per physical lane in this mode (legacy behavior)
+    kgForTable = totalKg / 3;
+    base = flowpackInterpolateFromTable(kgForTable, FLOWPACK_KG_POINTS, FLOWPACK_CLICKS_1, FLOWPACK_METERS_1);
+  }
+
+  const final = flowpackFinalize(base);
+
+  // Write the same job result into each active row (logic-only focus)
+  active.forEach((info) => {
+    const tdClicks = info.row.children[3];
+    const tdMeters = info.row.children[4];
+    tdClicks.textContent = formatNumber(final.clicks);
+    tdMeters.textContent = String(final.meters);
+  });
+
+  // Summary
+  const usedLanes = active.reduce((sum, info) => sum + (info.effectiveLanes || 0), 0);
+  const totalKgAll = active.reduce((sum, info) => sum + (info.kg || 0), 0);
+
+  flowpackSummary.innerHTML = `
+    Mode: <strong>${mode}</strong><br />
+    Total kg entered: <strong>${formatNumber(totalKgAll)}</strong><br />
+    Total lanes used: <strong>${formatNumber(usedLanes)}</strong> / ${FLOWPACK_MAX_LANES_TOTAL}<br />
+    Table kg basis: <strong>${formatNumber(kgForTable)}</strong><br />
+    Total flowpack clicks: <strong>${formatNumber(final.clicks)}</strong><br />
+    Approx. diecut stop: <strong>${formatNumber(final.meters)}</strong> m
+  `;
 }
 
 function initFlowpackCalculator() {
