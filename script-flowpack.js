@@ -2,10 +2,6 @@
 // FLOWPACK CALCULATOR
 // =========================================================
 
-// =========================================================
-// FLOWPACK CALCULATOR
-// =========================================================
-
 // NOTE: Logic is table-based (boss planning table) with deterministic interpolation.
 // - Max 3 lanes total across all designs
 // - Two modes:
@@ -279,9 +275,11 @@ function recalcFlowpack() {
     Mode: <strong>${mode}</strong><br />
     Total kg entered: <strong>${formatNumber(totalKgAll)}</strong><br />
     Total lanes used: <strong>${formatNumber(usedLanes)}</strong> / ${FLOWPACK_MAX_LANES_TOTAL}<br />
-    Table kg basis: <strong>${formatNumber(kgForTable)}</strong><br />
-    Total flowpack clicks: <strong>${formatNumber(final.clicks)}</strong><br />
-    Approx. diecut stop: <strong>${formatNumber(final.meters)}</strong> m
+    Table kg basis: <strong>${formatNumber(kgForTable)}</strong><br /><br />
+    <div style="padding:10px;border-radius:8px;background:#0f2a3d;color:#bfe3ff;">
+      Total to print: <strong style="color:#ffffff;">${formatNumber(final.clicks)}</strong><br />
+      Approx. diecut stop: <strong style="color:#ffffff;">${formatNumber(final.meters)}</strong> m
+    </div>
   `;
 }
 
