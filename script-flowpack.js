@@ -272,16 +272,18 @@ function recalcFlowpack() {
   const totalKgAll = active.reduce((sum, info) => sum + (info.kg || 0), 0);
 
   flowpackSummary.innerHTML = `
-    Mode: <strong>${mode}</strong><br />
     Total kg entered: <strong>${formatNumber(totalKgAll)}</strong><br />
     Total lanes used: <strong>${formatNumber(usedLanes)}</strong> / ${FLOWPACK_MAX_LANES_TOTAL}<br />
-    Table kg basis: <strong>${formatNumber(kgForTable)}</strong><br /><br />
-    <div style="padding:10px;border-radius:8px;background:#0f2a3d;color:#bfe3ff;">
-      Total to print: <strong style="color:#ffffff;">${formatNumber(final.clicks)}</strong><br />
-      Approx. diecut stop: <strong style="color:#ffffff;">${formatNumber(final.meters)}</strong> m
-    </div>
+    <span class="muted">Mode: ${mode} (table kg basis: ${formatNumber(kgForTable)})</span><br />
+    <span style="font-size: 15px;">
+      <strong>Total to print:</strong> ${formatNumber(final.clicks)}
+    </span><br />
+    <span style="font-size: 15px;">
+      <strong>Approx. diecut stop:</strong> ${formatNumber(final.meters)} m
+    </span>
   `;
 }
+
 
 function initFlowpackCalculator() {
   const firstRow = createFlowpackRow({ designNumber: 1 });
