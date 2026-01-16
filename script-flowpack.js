@@ -138,21 +138,19 @@ function createFlowpackRow(initial = {}) {
   inputLanes.value = initial.lanes != null ? initial.lanes : "";
 
   tdKg.appendChild(inputKg);
-  // Wrap lanes input and Max button together (to keep column alignment)
-  const lanesWrap = document.createElement("div");
-  // Keep the Max button visually inside the Lanes column (prevent spill/overlap into next cells)
+  // Wrap lanes input and Max button together and force the button to stay inside the Lanes cell
+  // (Table cells can be narrow; using absolute positioning avoids spilling into the next columns.)
+  tdLanes.style.position = "relative";
   tdLanes.style.overflow = "hidden";
-  tdLanes.style.whiteSpace = "nowrap";
 
-  lanesWrap.style.display = "flex";
-  lanesWrap.style.alignItems = "center";
-  lanesWrap.style.gap = "6px";
-  lanesWrap.style.flexWrap = "nowrap";
-  lanesWrap.style.maxWidth = "100%";
-  lanesWrap.style.boxSizing = "border-box";
+  const lanesWrap = document.createElement("div");
+  lanesWrap.style.position = "relative";
+  lanesWrap.style.width = "100%";
 
-  inputLanes.style.flex = "1 1 auto";
-  inputLanes.style.minWidth = "0";
+  // Make the input fill the cell, reserving room for the button on the right
+  inputLanes.style.boxSizing = "border-box";
+  inputLanes.style.width = "100%";
+  inputLanes.style.paddingRight = "56px";
 
   lanesWrap.appendChild(inputLanes);
 
@@ -161,8 +159,15 @@ function createFlowpackRow(initial = {}) {
   maxBtn.type = "button";
   maxBtn.textContent = "Max";
   maxBtn.className = "btn-secondary";
-  maxBtn.style.flex = "0 0 auto";
+
+  // Keep button inside the cell, aligned to the right of the lanes input
+  maxBtn.style.position = "absolute";
+  maxBtn.style.right = "8px";
+  maxBtn.style.top = "50%";
+  maxBtn.style.transform = "translateY(-50%)";
   maxBtn.style.whiteSpace = "nowrap";
+  maxBtn.style.zIndex = "1";
+
   maxBtn.addEventListener("click", () => {
     inputLanes.value = String(FLOWPACK_MAX_LANES_TOTAL);
     inputLanes.dispatchEvent(new Event("input", { bubbles: true }));
