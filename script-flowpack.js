@@ -138,7 +138,13 @@ function createFlowpackRow(initial = {}) {
   inputLanes.value = initial.lanes != null ? initial.lanes : "";
 
   tdKg.appendChild(inputKg);
-  tdLanes.appendChild(inputLanes);
+  // Wrap lanes input and Max button together (to keep column alignment)
+  const lanesWrap = document.createElement("div");
+  lanesWrap.style.display = "flex";
+  lanesWrap.style.alignItems = "center";
+  lanesWrap.style.gap = "6px";
+
+  lanesWrap.appendChild(inputLanes);
 
   // Max button (sets this row's lanes to the maximum allowed and triggers normal recalculation)
   const maxBtn = document.createElement("button");
@@ -149,7 +155,9 @@ function createFlowpackRow(initial = {}) {
     inputLanes.value = String(FLOWPACK_MAX_LANES_TOTAL);
     inputLanes.dispatchEvent(new Event("input", { bubbles: true }));
   });
-  tdLanes.appendChild(maxBtn);
+
+  lanesWrap.appendChild(maxBtn);
+  tdLanes.appendChild(lanesWrap);
   tdClicks.textContent = "";
   tdMeters.textContent = "";
 
