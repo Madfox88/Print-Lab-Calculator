@@ -138,51 +138,36 @@ function createFlowpackRow(initial = {}) {
   inputLanes.value = initial.lanes != null ? initial.lanes : "";
 
   tdKg.appendChild(inputKg);
-  // Wrap lanes input and Max button together and force the button to stay inside the Lanes cell
-  // (Table cells can be narrow; using absolute positioning avoids spilling into the next columns.)
-  tdLanes.style.position = "relative";
-  tdLanes.style.overflow = "hidden";
+  tdLanes.appendChild(inputLanes);
+  tdClicks.textContent = "";
+  tdMeters.textContent = "";
 
-  const lanesWrap = document.createElement("div");
-  lanesWrap.style.position = "relative";
-  lanesWrap.style.width = "100%";
-
-  // Make the input fill the cell, reserving room for the button on the right
-  inputLanes.style.boxSizing = "border-box";
-  inputLanes.style.width = "100%";
-  inputLanes.style.paddingRight = "56px";
-
-  lanesWrap.appendChild(inputLanes);
-
-  // Max button (sets this row's lanes to the maximum allowed and triggers normal recalculation)
+  // Actions
   const maxBtn = document.createElement("button");
   maxBtn.type = "button";
   maxBtn.textContent = "Max";
   maxBtn.className = "btn-secondary";
-
-  // Keep button inside the cell, aligned to the right of the lanes input
-  maxBtn.style.position = "absolute";
-  maxBtn.style.right = "8px";
-  maxBtn.style.top = "50%";
-  maxBtn.style.transform = "translateY(-50%)";
-  maxBtn.style.whiteSpace = "nowrap";
-  maxBtn.style.zIndex = "1";
-
   maxBtn.addEventListener("click", () => {
     inputLanes.value = String(FLOWPACK_MAX_LANES_TOTAL);
     inputLanes.dispatchEvent(new Event("input", { bubbles: true }));
   });
 
-  lanesWrap.appendChild(maxBtn);
-  tdLanes.appendChild(lanesWrap);
-  tdClicks.textContent = "";
-  tdMeters.textContent = "";
-
   const removeBtn = document.createElement("button");
   removeBtn.type = "button";
   removeBtn.textContent = "Remove";
   removeBtn.classList.add("btn-danger");
-  tdActions.appendChild(removeBtn);
+
+  // Keep both buttons under the Actions column
+  const actionsWrap = document.createElement("div");
+  actionsWrap.style.display = "flex";
+  actionsWrap.style.alignItems = "center";
+  actionsWrap.style.justifyContent = "flex-end";
+  actionsWrap.style.gap = "8px";
+  actionsWrap.style.flexWrap = "nowrap";
+
+  actionsWrap.appendChild(maxBtn);
+  actionsWrap.appendChild(removeBtn);
+  tdActions.appendChild(actionsWrap);
 
   tr.appendChild(tdName);
   tr.appendChild(tdKg);
