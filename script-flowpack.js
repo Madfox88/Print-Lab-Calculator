@@ -140,9 +140,19 @@ function createFlowpackRow(initial = {}) {
   tdKg.appendChild(inputKg);
   // Wrap lanes input and Max button together (to keep column alignment)
   const lanesWrap = document.createElement("div");
+  // Keep the Max button visually inside the Lanes column (prevent spill/overlap into next cells)
+  tdLanes.style.overflow = "hidden";
+  tdLanes.style.whiteSpace = "nowrap";
+
   lanesWrap.style.display = "flex";
   lanesWrap.style.alignItems = "center";
   lanesWrap.style.gap = "6px";
+  lanesWrap.style.flexWrap = "nowrap";
+  lanesWrap.style.maxWidth = "100%";
+  lanesWrap.style.boxSizing = "border-box";
+
+  inputLanes.style.flex = "1 1 auto";
+  inputLanes.style.minWidth = "0";
 
   lanesWrap.appendChild(inputLanes);
 
@@ -151,6 +161,8 @@ function createFlowpackRow(initial = {}) {
   maxBtn.type = "button";
   maxBtn.textContent = "Max";
   maxBtn.className = "btn-secondary";
+  maxBtn.style.flex = "0 0 auto";
+  maxBtn.style.whiteSpace = "nowrap";
   maxBtn.addEventListener("click", () => {
     inputLanes.value = String(FLOWPACK_MAX_LANES_TOTAL);
     inputLanes.dispatchEvent(new Event("input", { bubbles: true }));
