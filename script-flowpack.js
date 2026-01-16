@@ -276,10 +276,10 @@ function recalcFlowpack() {
     Total lanes used: <strong>${formatNumber(usedLanes)}</strong> / ${FLOWPACK_MAX_LANES_TOTAL}<br />
     <span class="muted">Mode: ${mode} (table kg basis: ${formatNumber(kgForTable)})</span><br />
     <span style="font-size: 15px;">
-      <strong>Total to print:</strong> ${formatNumber(final.clicks)}
+      <strong class="accent">Total to print:</strong> ${formatNumber(final.clicks)}
     </span><br />
     <span style="font-size: 15px;">
-      <strong>Approx. diecut stop:</strong> ${formatNumber(final.meters)} m
+      <strong class="accent">Approx. diecut stop:</strong> ${formatNumber(final.meters)} m
     </span>
   `;
 }
