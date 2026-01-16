@@ -322,6 +322,19 @@ function recalcFlowpack() {
 
 
 function initFlowpackCalculator() {
+  // Ensure Flowpack table columns are evenly spaced (logic/UI safe, no CSS edits)
+  const flowpackTable = document.getElementById("flowpackTable");
+  if (flowpackTable) {
+    flowpackTable.style.tableLayout = "fixed";
+    flowpackTable.style.width = "100%";
+    const ths = flowpackTable.querySelectorAll("thead th");
+    if (ths && ths.length > 0) {
+      const w = (100 / ths.length).toFixed(3) + "%";
+      ths.forEach((th) => {
+        th.style.width = w;
+      });
+    }
+  }
   const firstRow = createFlowpackRow({ designNumber: 1 });
   flowpackTableBody.appendChild(firstRow);
 
