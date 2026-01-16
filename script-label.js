@@ -94,21 +94,12 @@ function createDesignRow(initial = {}) {
     inputLanes.max = String(currentProduct.maxLanes);
   }
 
-  // --- NEW: Max button next to lane input (Label Print Calculator only) ---
+  // Max button (under Actions)
   const maxBtn = document.createElement("button");
   maxBtn.type = "button";
   maxBtn.textContent = "Max";
   maxBtn.classList.add("btn-secondary");
   maxBtn.setAttribute("aria-label", "Set lanes to maximum for current product");
-
-  // Use inline layout so we don't have to touch style.css
-  const lanesWrap = document.createElement("div");
-  lanesWrap.style.display = "flex";
-  lanesWrap.style.gap = "8px";
-  lanesWrap.style.alignItems = "center";
-
-  lanesWrap.appendChild(inputLanes);
-  lanesWrap.appendChild(maxBtn);
 
   maxBtn.addEventListener("click", () => {
     const product = getSelectedProduct();
@@ -118,16 +109,27 @@ function createDesignRow(initial = {}) {
     inputLanes.value = String(product.maxLanes);
     inputLanes.dispatchEvent(new Event("input", { bubbles: true }));
   });
-  // --- END NEW ---
 
   const removeBtn = document.createElement("button");
   removeBtn.type = "button";
   removeBtn.textContent = "Remove";
   removeBtn.classList.add("btn-danger");
 
+  // Keep both buttons aligned under Actions header (match Flowpack)
+  const actionsWrap = document.createElement("div");
+  actionsWrap.style.display = "flex";
+  actionsWrap.style.alignItems = "center";
+  actionsWrap.style.justifyContent = "flex-start";
+  actionsWrap.style.paddingLeft = "4px";
+  actionsWrap.style.gap = "8px";
+  actionsWrap.style.flexWrap = "nowrap";
+
+  actionsWrap.appendChild(maxBtn);
+  actionsWrap.appendChild(removeBtn);
+
   tdTotal.appendChild(inputTotal);
-  tdLanes.appendChild(lanesWrap);
-  tdActions.appendChild(removeBtn);
+  tdLanes.appendChild(inputLanes);
+  tdActions.appendChild(actionsWrap);
 
   tr.appendChild(tdName);
   tr.appendChild(tdTotal);
