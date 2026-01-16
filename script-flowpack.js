@@ -161,7 +161,8 @@ function createFlowpackRow(initial = {}) {
   const actionsWrap = document.createElement("div");
   actionsWrap.style.display = "flex";
   actionsWrap.style.alignItems = "center";
-  actionsWrap.style.justifyContent = "flex-end";
+  actionsWrap.style.justifyContent = "flex-start";
+  actionsWrap.style.paddingLeft = "4px";
   actionsWrap.style.gap = "8px";
   actionsWrap.style.flexWrap = "nowrap";
 
